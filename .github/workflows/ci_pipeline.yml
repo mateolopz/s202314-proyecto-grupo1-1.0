@@ -1,0 +1,129 @@
+name: Test coverage
+on:
+  push:
+    branches:
+      - main
+jobs:
+  test_users:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: users
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    strategy:
+      matrix:
+        python-version: [3.11]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install pipenv
+        working-directory: ./users
+        run: pip install pipenv
+      - name: Install dependencies
+        working-directory: ./users
+        run: pipenv install --dev
+      - name: Run unit tests
+        working-directory: ./users
+        run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
+
+  test_posts:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: posts_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    strategy:
+      matrix:
+        python-version: [3.11]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install pipenv
+        working-directory: ./posts
+        run: pip install pipenv
+      - name: Install dependencies
+        working-directory: ./posts
+        run: pipenv install --dev
+      - name: Run unit tests
+        working-directory: ./posts
+        run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
+
+  test_offers:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: offers_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    strategy:
+      matrix:
+        python-version: [3.11]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install pipenv
+        working-directory: ./offers
+        run: pip install pipenv
+      - name: Install dependencies
+        working-directory: ./offers
+        run: pipenv install --dev
+      - name: Run unit tests
+        working-directory: ./offers
+        run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
+
+  test_routes:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: posts_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    strategy:
+      matrix:
+        python-version: [3.11]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install pipenv
+        working-directory: ./routes
+        run: pip install pipenv
+      - name: Install dependencies
+        working-directory: ./routes
+        run: pipenv install --dev
+      - name: Run unit tests
+        working-directory: ./routes
+        run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
