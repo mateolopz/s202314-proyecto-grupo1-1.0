@@ -58,6 +58,15 @@ async def get_houses():
         lista.append(formattedData)
     return lista
 
+@router.get("/stats/usersfilters")
+async def get_user_filters_stats():
+    doc = db.collection('Stats').document('UsersFilters').get()
+    if doc.exists:
+        user_filters_stats = doc.to_dict()
+        return user_filters_stats
+    else:
+        return []
+
 @router.get("/users/{user_id}/houseliking")
 async def get_liking_houses_by_user(user_id: str):
     doc = db.collection('HouseLiking').document(user_id).get()
@@ -105,3 +114,16 @@ async def get_houses_by_filters(request_data: dict):
             filtered_houses.append(house)
 
     return filtered_houses
+
+@router.put("/stats/usersfilters")
+async def get_houses_by_filters(times_data: dict):
+    doc = db.collection('Stats').document('UsersFilters').get()
+    user_filters_stats = doc.to_dict()
+    for field, value in times_data.items():
+        if field in user_filters_stats:
+            if value in user_filters_stats[field]:
+                user_filters_stats[field][value] += 1
+            else:
+                user_filters_stats[field][value] = 1
+        
+    db.collection('Stats').document('UsersFilters').set(user_filters_stats)
