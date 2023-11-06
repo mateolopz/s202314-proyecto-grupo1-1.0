@@ -121,13 +121,13 @@ async def get_houses_by_filters(request_data: dict):
                 else:
                     if(value == house[field]):
                         match_times+=1
-        if(match_times>=atributes*0.7):
+        if(match_times>=atributes*0.5):
             filtered_houses.append(house)
 
     return filtered_houses
 
 @router.put("/stats/usersfilters")
-async def get_houses_by_filters(times_data: dict):
+async def put_user_filters_stats(times_data: dict):
     doc = db.collection('Stats').document('UsersFilters').get()
     user_filters_stats = doc.to_dict()
     for field, value in times_data.items():
@@ -141,7 +141,7 @@ async def get_houses_by_filters(times_data: dict):
 
 @router.get("/houses/{email}")
 async def get_houses_by_user(email: str):
-    houses = (db.collection('houses2')
+    houses = (db.collection('Houses')
               .where(filter=FieldFilter('idUser', '==', email))
                 .stream())    
     lista = []
@@ -158,3 +158,35 @@ async def get_houses_by_user(email: str):
     }
     response_json = json.dumps(response_data)
     return response_json
+
+@router.get("/reviews/{house_id}")
+async def get_reviews_by_house(house_id: str):
+
+    doc = db.collection('Reviews').where(filter=FieldFilter('houseId', '==', house_id)).get()
+    lista = []
+    for reg in doc:
+        formattedData = reg.to_dict()
+        lista.append(formattedData)
+    return lista
+
+@router.post("/reviews")
+async def post_reviews(review: dict):
+    db.collection('Reviews').add(review)
+    return {"message": "Review added successfully"}
+
+@router.put("/houses/{house_id}")
+async def update_rating(house_id: str):
+    doc = db.collection('Houses').document(house_id).get()
+    house = doc.to_dict()
+    rating = db.collection('Reviews').where(filter=FieldFilter('houseId', '==', house_id)).get()
+
+    sum = 0
+    count = 0
+    for reg in rating:
+        formattedData = reg.to_dict()
+        sum += formattedData['score']
+        count += 1
+
+    house['rating'] = sum/count
+    db.collection('Houses').document(house_id).set(house)
+    return {"message": "Rating updated successfully"}
