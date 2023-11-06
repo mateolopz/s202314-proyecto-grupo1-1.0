@@ -166,6 +166,7 @@ async def get_reviews_by_house(house_id: str):
     lista = []
     for reg in doc:
         formattedData = reg.to_dict()
+        formattedData['id'] = reg.id
         lista.append(formattedData)
     return lista
 
