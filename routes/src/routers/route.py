@@ -28,8 +28,10 @@ async def get_houses():
     lista = []
     for doc in docs:
         formattedData = doc.to_dict()
+        formattedData['id'] = doc.id  
         lista.append(formattedData)
     return lista
+
 
 @router.get("/users")
 async def get_houses():
@@ -38,6 +40,7 @@ async def get_houses():
     lista = []
     for doc in docs:
         formattedData = doc.to_dict()
+        formattedData['id'] = doc.id
         lista.append(formattedData)
     return lista
 
