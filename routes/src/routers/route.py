@@ -61,6 +61,7 @@ async def get_houses():
     lista = []
     for doc in docs:
         formattedData = doc.to_dict()
+        formattedData['id'] = doc.id  
         lista.append(formattedData)
     return lista
 
@@ -89,7 +90,9 @@ async def get_liking_houses_by_user(user_id: str):
 
         docs = query.get()
         for doc in docs:
-            houses.append(doc.to_dict())
+            formattedData = doc.to_dict()
+            formattedData['id'] = doc.id  
+            houses.append(formattedData)
 
         return houses
     else:
@@ -101,8 +104,10 @@ async def get_houses_by_filters(request_data: dict):
 
     filtered_houses = []
 
-    for house in query:
-        house = house.to_dict()
+    for doc in query:
+        house = doc.to_dict()
+        house['id'] = doc.id  
+        
         match_times = 0
         atributes = 0
         for field, value in request_data.items():
