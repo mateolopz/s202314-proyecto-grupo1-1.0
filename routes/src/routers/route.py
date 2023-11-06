@@ -126,7 +126,7 @@ async def get_houses_by_filters(times_data: dict):
     doc = db.collection('Stats').document('UsersFilters').get()
     user_filters_stats = doc.to_dict()
     for field, value in times_data.items():
-        if field in user_filters_stats:
+        if field in user_filters_stats and value is not None:
             if value in user_filters_stats[field]:
                 user_filters_stats[field][value] += 1
             else:
