@@ -3,7 +3,10 @@ from fastapi import APIRouter, Depends, Response, Header, Query
 from fastapi.responses import JSONResponse
 import src.logic.route as logic
 import firebase_admin
+import json
+from .processing import occupancy_rate, revenue
 from firebase_admin import credentials, firestore
+from google.cloud.firestore_v1 import FieldFilter
 
 router = APIRouter(
     prefix="/senehouse",
@@ -127,3 +130,23 @@ async def get_houses_by_filters(times_data: dict):
                 user_filters_stats[field][value] = 1
         
     db.collection('Stats').document('UsersFilters').set(user_filters_stats)
+
+@router.get("/houses/{email}")
+async def get_houses_by_user(email: str):
+    houses = (db.collection('houses2')
+              .where(filter=FieldFilter('idUser', '==', email))
+                .stream())    
+    lista = []
+    for doc in houses:
+        formattedData = doc.to_dict()
+        lista.append(formattedData)
+
+    rate = occupancy_rate(lista)
+    revenue_map = revenue(lista)
+
+    response_data = {
+        "occupancyRate": rate,
+        "revenue": revenue_map
+    }
+    response_json = json.dumps(response_data)
+    return response_json

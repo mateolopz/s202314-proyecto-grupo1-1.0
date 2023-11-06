@@ -6,6 +6,8 @@ __pycache__/
 # C extensions
 *.so
 
+senehouse-keys.json
+
 # Distribution / packaging
 .Python
 build/
