@@ -57,3 +57,25 @@ async def get_houses():
         formattedData = doc.to_dict()
         lista.append(formattedData)
     return lista
+
+@router.get("/users/{user_id}/houseliking")
+async def get_user_houses(user_id: str):
+    doc = db.collection('HouseLiking').document(user_id).get()
+    if doc.exists:
+        user_house_liking = doc.to_dict()
+
+        query = db.collection('Houses')
+
+        for field, value in user_house_liking.items():
+            query = query.where(field, "==", value)
+        query = query.limit(3)
+
+        houses = []
+
+        docs = query.get()
+        for doc in docs:
+            houses.append(doc.to_dict())
+
+        return houses
+    else:
+        return []
