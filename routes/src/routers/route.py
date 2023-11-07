@@ -188,6 +188,7 @@ async def update_rating(house_id: str):
         sum += formattedData['score']
         count += 1
 
-    house['rating'] = sum/count
+    raiting = sum/count
+    house['rating'] = raiting
     db.collection('Houses').document(house_id).set(house)
-    return {"message": "Rating updated successfully"}
+    return {"message": "Rating updated successfully", "raiting": raiting}
