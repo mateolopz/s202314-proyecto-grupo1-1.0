@@ -73,6 +73,16 @@ async def get_user_filters_stats():
         return user_filters_stats
     else:
         return []
+    
+@router.get("/stats/housesfilters")
+async def get_user_filters_stats():
+    doc = db.collection('FilterHouse').document('snF8sl1hqZpisoFQGXF7').get()
+    if doc.exists:
+        user_filters_stats = doc.to_dict()
+        return user_filters_stats
+    else:
+        return []
+
 
 @router.get("/users/{user_id}/houseliking")
 async def get_liking_houses_by_user(user_id: str):
