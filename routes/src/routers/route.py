@@ -107,7 +107,7 @@ async def get_liking_houses_by_user(user_id: str):
         return houses
     else:
         return []
-    
+
 @router.post("/houses/filtered")
 async def get_houses_by_filters(request_data: dict):
     query = db.collection('Houses').get()
@@ -139,16 +139,17 @@ async def get_houses_by_filters(request_data: dict):
 
 @router.post("/users/filtered")
 async def get_users_by_filters(request_data: dict):
+    print(request_data)
     usuarios=[]
     query = db.collection('Users')
-    pet_preference = request_data["petPreference"]
-    introverted_preference = request_data["introvertedPreference"]
-    cleaning_frequency = request_data["cleaningFrequency"]
-    vape_preference = request_data["vapePreference"]
-    smoke_preference = request_data["smokePreference"]
-    work_from_home_preference = request_data["workFromHomePreference"]
-    sleep_time = request_data["sleepTime"]
-    external_people_frequency = request_data["externalPeopleFrequency"]
+    pet_preference = request_data["likes_pet"]
+    introverted_preference = request_data["personality"]
+    cleaning_frequency = request_data["clean"]
+    vape_preference = request_data["vape"]
+    smoke_preference = request_data["smoke"]
+    work_from_home_preference = request_data["work_home"]
+    sleep_time = request_data["sleep_time"]
+    external_people_frequency = request_data["bring_people"]
     city = request_data["city"]
     neighborhood = request_data["neighborhood"]
     
