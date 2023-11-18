@@ -13,7 +13,7 @@ router = APIRouter(
     tags=["senehouse"],
 )
 
-cred = credentials.Certificate("senehouse-keys.json")
+cred = credentials.Certificate("./senehouse-keys.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -135,6 +135,50 @@ async def get_houses_by_filters(request_data: dict):
             filtered_houses.append(house)
 
     return filtered_houses
+
+
+@router.get("/users/filtered")
+async def get_users_by_filters(request_data: dict):
+    print(request_data)
+    usuarios=[]
+    query = db.collection('Users')
+    pet_preference = request_data["petPreference"]
+    introverted_preference = request_data["introvertedPreference"]
+    cleaning_frequency = request_data["cleaningFrequency"]
+    vape_preference = request_data["vapePreference"]
+    smoke_preference = request_data["smokePreference"]
+    work_from_home_preference = request_data["workFromHomePreference"]
+    sleep_time = request_data["sleepTime"]
+    external_people_frequency = request_data["externalPeopleFrequency"]
+    city = request_data["city"]
+    neighborhood = request_data["neighborhood"]
+    
+    if external_people_frequency is not None:
+        query = query.where("bring_people", "==", external_people_frequency)
+    if sleep_time is not None:
+        query = query.where("sleep", "==", sleep_time)
+    if smoke_preference is not None:
+        query = query.where("smoke", "==", smoke_preference)
+    if vape_preference is not None:
+        query = query.where("vape", "==", vape_preference)
+    if cleaning_frequency is not None:
+        query = query.where("clean", "==", cleaning_frequency)
+    if introverted_preference is not None:
+        query = query.where("personality", "==", introverted_preference)
+    if pet_preference is not None:
+        query = query.where("likes_pets", "==", pet_preference)
+    if city is not None:
+        query = query.where("city", "==", city)
+    if neighborhood is not None:
+        query = query.where("locality", "==", neighborhood)
+
+    query_snapshot = query.get()
+
+    for doc in query_snapshot:
+        formattedData = doc.to_dict()
+        formattedData['id'] = doc.id
+        usuarios.append(formattedData)
+    return usuarios
 
 @router.put("/stats/usersfilters")
 async def put_user_filters_stats(times_data: dict):
