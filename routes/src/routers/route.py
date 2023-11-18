@@ -137,9 +137,8 @@ async def get_houses_by_filters(request_data: dict):
     return filtered_houses
 
 
-@router.get("/users/filtered")
+@router.post("/users/filtered")
 async def get_users_by_filters(request_data: dict):
-    print(request_data)
     usuarios=[]
     query = db.collection('Users')
     pet_preference = request_data["petPreference"]
