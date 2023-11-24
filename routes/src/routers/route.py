@@ -229,10 +229,10 @@ async def put_user_filters_stats(times_data: dict):
         
     db.collection('Stats').document('UsersFilters').set(user_filters_stats)
 
-@router.get("/houses/{email}")
-async def get_houses_by_user(email: str):
+@router.get("/houses/{id}")
+async def get_houses_by_user(id: str):
     houses = (db.collection('Houses')
-              .where(filter=FieldFilter('idUser', '==', email))
+              .where(filter=FieldFilter('idUser', '==', id))
                 .stream())    
     lista = []
     for doc in houses:
