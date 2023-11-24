@@ -235,6 +235,8 @@ async def update_rating(house_id: str):
     house = doc.to_dict()
     rating = db.collection('Reviews').where(filter=FieldFilter('houseId', '==', house_id)).get()
 
+    if (house is None):
+        return {"message": "House not found", "raiting": 0}
     sum = 0
     count = 0
     for reg in rating:
@@ -242,6 +244,8 @@ async def update_rating(house_id: str):
         sum += formattedData['rating']
         count += 1
 
+    if (count == 0):
+        return {"message": "No reviews for this house", "raiting": house['rating']}
     raiting = sum/count
     house['rating'] = raiting
     db.collection('Houses').document(house_id).set(house)
