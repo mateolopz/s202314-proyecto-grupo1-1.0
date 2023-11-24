@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 import src.logic.route as logic
 import firebase_admin
 import json
-from .processing import occupancy_rate, revenue
+from .processing import occupancy_rate, revenue, calculate_distance
 from firebase_admin import credentials, firestore
 from google.cloud.firestore_v1 import FieldFilter
 
@@ -108,6 +108,20 @@ async def get_liking_houses_by_user(user_id: str):
     else:
         return []
 
+
+@router.get("/nearestoffers")
+async def get_nearest_offers(latitude: float, longitude: float, maxDistance: int):
+    data = db.collection('Houses')
+    docs = data.stream()
+    lista = []
+    for doc in docs:
+        formattedData = doc.to_dict()
+        formattedData['id'] = doc.id  
+        lista.append(formattedData)
+    result = calculate_distance(latitude, longitude, lista, maxDistance)
+    #response_json = json.dumps(result)
+    return result
+
 @router.post("/houses/filtered")
 async def get_houses_by_filters(request_data: dict):
     query = db.collection('Houses').get()
@@ -136,10 +150,32 @@ async def get_houses_by_filters(request_data: dict):
 
     return filtered_houses
 
+@router.post("/users/ubication")
+async def get_documents_within_radius(request_data:dict):
+
+    users = []
+    radius_in_degrees = 20
+    longitude=request_data["longitude"]
+    latitude=request_data["latitude"]
+    min_lat = latitude - radius_in_degrees
+    max_lat = latitude + radius_in_degrees
+    min_lon = longitude - radius_in_degrees
+    max_lon = longitude + radius_in_degrees
+
+    users_collection = firestore.client().collection('Users')
+
+    query = users_collection.where('latitude', '>=', min_lat).where('latitude', '<=', max_lat).get()
+
+    for doc in query:
+        formattedData = doc.to_dict()
+        if min_lon <= formattedData["longitude"] <= max_lon:
+            formattedData['id'] = doc.id
+            users.append(formattedData)
+            
+    return users
 
 @router.post("/users/filtered")
 async def get_users_by_filters(request_data: dict):
-    print(request_data)
     usuarios=[]
     query = db.collection('Users')
     pet_preference = request_data["likes_pet"]

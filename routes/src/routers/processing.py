@@ -1,3 +1,6 @@
+import math
+
+
 def occupancy_rate(list_apartment):
     occupancy_map = {}
     total_records = 0
@@ -51,3 +54,24 @@ def revenue(list_apartments):
     revenue_map["Total"] = total_revenue_list
 
     return revenue_map
+
+def calculate_distance(latitude, longitude, houses, maxDistance):
+    radius = 6371 
+    result = []
+    for house in houses:
+        latitude2 = house["latitude"]
+        longitude2 = house["longitude"]
+        d_lat = math.radians(latitude2 - latitude)
+        d_lon = math.radians(longitude2 - longitude)
+
+        a = math.sin(d_lat / 2) * math.sin(d_lat / 2) + \
+            math.cos(math.radians(latitude)) * math.cos(math.radians(latitude)) * \
+            math.sin(d_lon / 2) * math.sin(d_lon / 2)
+
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        distance = radius*c
+        if distance <= maxDistance:
+            house["distance"] = round(distance,2)
+            result.append(house)
+    sorted_data = sorted(result, key=lambda x: x['distance'], reverse=True)
+    return sorted_data
