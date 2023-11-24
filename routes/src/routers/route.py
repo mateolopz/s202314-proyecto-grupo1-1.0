@@ -185,7 +185,7 @@ async def update_rating(house_id: str):
     count = 0
     for reg in rating:
         formattedData = reg.to_dict()
-        sum += formattedData['score']
+        sum += formattedData['rating']
         count += 1
 
     raiting = sum/count
