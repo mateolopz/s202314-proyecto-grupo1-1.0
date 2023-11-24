@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 import src.logic.route as logic
 import firebase_admin
 import json
-from .processing import occupancy_rate, revenue
+from .processing import occupancy_rate, revenue, calculate_distance
 from firebase_admin import credentials, firestore
 from google.cloud.firestore_v1 import FieldFilter
 
@@ -107,6 +107,20 @@ async def get_liking_houses_by_user(user_id: str):
         return houses
     else:
         return []
+
+
+@router.get("/nearestoffers")
+async def get_nearest_offers(latitude: float, longitude: float, maxDistance: int):
+    data = db.collection('Houses')
+    docs = data.stream()
+    lista = []
+    for doc in docs:
+        formattedData = doc.to_dict()
+        formattedData['id'] = doc.id  
+        lista.append(formattedData)
+    result = calculate_distance(latitude, longitude, lista, maxDistance)
+    #response_json = json.dumps(result)
+    return result
 
 @router.post("/houses/filtered")
 async def get_houses_by_filters(request_data: dict):
@@ -261,7 +275,7 @@ async def update_rating(house_id: str):
     count = 0
     for reg in rating:
         formattedData = reg.to_dict()
-        sum += formattedData['score']
+        sum += formattedData['rating']
         count += 1
 
     raiting = sum/count
