@@ -286,3 +286,10 @@ async def update_rating(house_id: str):
     house['rating'] = raiting
     db.collection('Houses').document(house_id).set(house)
     return {"message": "Rating updated successfully", "raiting": raiting}
+
+@router.post("/houses")
+async def post_house(house: dict):
+    if 'id' in house:
+        del house['id']
+    db.collection('Houses').add(house)
+    return {"message": "House added successfully"}
