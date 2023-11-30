@@ -316,7 +316,9 @@ async def get_best_descriptions():
     top_3_appartments = sorted_appartments[:3]
 
     # Retrieve the descriptions of the top 3 appartment ids
-    for house_id in top_3_appartments:
-        descriptions.append(top_3_appartments[house_id]['description'])
+    for house_top in top_3_appartments:
+        house = db.collection('Houses').document(house_top[0]).get()
+        house_dict = house.to_dict()
+        descriptions.append(house_dict['description'])
 
     return descriptions
