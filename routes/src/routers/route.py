@@ -293,3 +293,30 @@ async def post_house(house: dict):
         del house['id']
     db.collection('Houses').add(house)
     return {"message": "House added successfully"}
+
+@router.put("/houses/{house_id}/views")
+async def update_appartment_views(house_id: str):
+    doc = db.collection('Stats').document('appartmentsViewCount').get()
+    appartment_views = doc.to_dict()
+    if house_id in appartment_views:
+        appartment_views[house_id] += 1
+    else:
+        appartment_views[house_id] = 1
+        
+    db.collection('Stats').document('appartmentsViewCount').set(appartment_views)
+
+@router.get("/houses/bestdescriptions")
+async def get_best_descriptions():
+    descriptions = []
+    doc = db.collection('Stats').document('appartmentsViewCount').get()
+    appartment_views = doc.to_dict()
+
+    sorted_appartments = sorted(appartment_views.items(), key=lambda x: x[1], reverse=True)
+
+    top_3_appartments = sorted_appartments[:3]
+
+    # Retrieve the descriptions of the top 3 appartment ids
+    for house_id in top_3_appartments:
+        descriptions.append(top_3_appartments[house_id]['description'])
+
+    return descriptions
