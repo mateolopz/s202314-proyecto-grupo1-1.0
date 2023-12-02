@@ -286,3 +286,45 @@ async def update_rating(house_id: str):
     house['rating'] = raiting
     db.collection('Houses').document(house_id).set(house)
     return {"message": "Rating updated successfully", "raiting": raiting}
+
+
+@router.get("/houses/best")
+async def get_best_houses():
+    some_data = db.collection('Houses')
+    
+    docs = some_data.order_by('rating', direction=firestore.Query.DESCENDING).stream()
+    
+    lista = []
+    count = 0
+    
+    for doc in docs:
+        formattedData = doc.to_dict()
+        formattedData['id'] = doc.id  
+        lista.append(formattedData)
+        count += 1
+        
+        if count >= 5:
+            break
+    
+    return lista
+
+
+@router.get("/users/best")
+async def get_best_users():
+    some_data = db.collection('Users')
+    
+    docs = some_data.order_by('stars', direction=firestore.Query.DESCENDING).stream()
+    
+    lista = []
+    count = 0
+    
+    for doc in docs:
+        formattedData = doc.to_dict()
+        formattedData['id'] = doc.id  
+        lista.append(formattedData)
+        count += 1
+        
+        if count >= 5:
+            break
+    
+    return lista
