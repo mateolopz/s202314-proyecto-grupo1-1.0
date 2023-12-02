@@ -234,10 +234,10 @@ async def put_user_filters_stats(times_data: dict):
         
     db.collection('Stats').document('UsersFilters').set(user_filters_stats)
 
-@router.get("/houses/{email}")
-async def get_houses_by_user(email: str):
+@router.get("/houses/{id}")
+async def get_houses_by_user(id: str):
     houses = (db.collection('Houses')
-              .where(filter=FieldFilter('idUser', '==', email))
+              .where(filter=FieldFilter('idUser', '==', id))
                 .stream())    
     lista = []
     for doc in houses:
@@ -255,9 +255,46 @@ async def get_houses_by_user(email: str):
     return response_json
 
 @router.get("/reviews/{house_id}")
+async def get_reviews_by_house(house_id: str, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
+
+    # Ajustar la consulta para incluir paginación
+    doc = db.collection('Reviews').where('houseId', '==', house_id).limit(limit).offset(skip).stream()
+
+    lista = []
+    for reg in doc:
+        formattedData = reg.to_dict()
+        formattedData['id'] = reg.id
+        lista.append(formattedData)
+    return lista
+
+@router.get("/total/reviews/{house_id}")
 async def get_reviews_by_house(house_id: str):
 
-    doc = db.collection('Reviews').where(filter=FieldFilter('houseId', '==', house_id)).get()
+    # Ajustar la consulta para incluir paginación
+    doc = db.collection('Reviews').where('houseId', '==', house_id).stream()
+    # Numero de reviews
+    count = 0
+    for reg in doc:
+        count += 1
+    return {"message": "Total Reviews", "count": count}
+
+@router.get("/total/reviews/user/{user_id}")
+async def get_reviews_by_house(user_id: str):
+
+    # Ajustar la consulta para incluir paginación
+    doc = db.collection('Reviews').where('userId', '==', user_id).stream()
+    # Numero de reviews
+    count = 0
+    for reg in doc:
+        count += 1
+    return {"message": "Total Reviews", "count": count}
+
+@router.get("/reviews/user/{user_id}")
+async def get_reviews_by_user(user_id: str, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
+
+    # Ajustar la consulta para incluir paginación
+    doc = db.collection('Reviews').where('userId', '==', user_id).limit(limit).offset(skip).stream()
+
     lista = []
     for reg in doc:
         formattedData = reg.to_dict()
@@ -276,6 +313,8 @@ async def update_rating(house_id: str):
     house = doc.to_dict()
     rating = db.collection('Reviews').where(filter=FieldFilter('houseId', '==', house_id)).get()
 
+    if (house is None):
+        return {"message": "House not found", "raiting": 0}
     sum = 0
     count = 0
     for reg in rating:
@@ -283,7 +322,117 @@ async def update_rating(house_id: str):
         sum += formattedData['rating']
         count += 1
 
+    if (count == 0):
+        return {"message": "No reviews for this house", "raiting": house['rating']}
     raiting = sum/count
     house['rating'] = raiting
     db.collection('Houses').document(house_id).set(house)
     return {"message": "Rating updated successfully", "raiting": raiting}
+
+
+@router.get("/best/houses")
+async def get_best_houses():
+    houses_collection = db.collection('Houses')
+    stats_collection = db.collection('Stats').document('appartmentsViewCount').get().to_dict()
+
+    # Obtener todos los documentos ordenados por rating en orden descendente
+    docs = houses_collection.order_by('rating', direction=firestore.Query.DESCENDING).stream()
+    lista = []
+    count = 0
+    print(stats_collection)
+    for doc in docs:
+        house_data = doc.to_dict()
+        house_id = doc.id
+
+        # Obtener el número de vistas desde la colección 'Stats'
+        views_count = stats_collection.get(house_id, 0)  # Si no hay vistas, establecer en 0
+
+        # Calcular la suma ponderada (70% rating, 30% número de vistas)
+        weighted_sum = 0.7 * house_data.get('rating', 0) + 0.3 * views_count
+
+        # Añadir el valor ponderado al diccionario de datos
+        house_data['weighted_sum'] = weighted_sum
+
+        # Añadir el id del documento al diccionario de datos
+        house_data['id'] = house_id
+
+        lista.append(house_data)
+        count += 1
+
+        if count >= 5:
+            break
+
+    # Ordenar la lista por la suma ponderada en orden descendente
+    lista = sorted(lista, key=lambda x: x['weighted_sum'], reverse=True)
+
+    return lista
+
+
+@router.get("/best/users")
+async def get_best_users():
+    some_data = db.collection('Users')
+    
+    docs = some_data.order_by('stars', direction=firestore.Query.DESCENDING).stream()
+    
+    lista = []
+    count = 0
+    
+    for doc in docs:
+        formattedData = doc.to_dict()
+        formattedData['id'] = doc.id  
+        lista.append(formattedData)
+        count += 1
+        
+        if count >= 5:
+            break
+    
+    return lista
+
+@router.post("/houses")
+async def post_house(house: dict):
+    if 'id' in house:
+        del house['id']
+    db.collection('Houses').add(house)
+    return {"message": "House added successfully"}
+
+@router.put("/houses/{house_id}/views")
+async def update_appartment_views(house_id: str):
+    doc = db.collection('Stats').document('appartmentsViewCount').get()
+    appartment_views = doc.to_dict()
+    if house_id in appartment_views:
+        appartment_views[house_id] += 1
+    else:
+        appartment_views[house_id] = 1
+        
+    db.collection('Stats').document('appartmentsViewCount').set(appartment_views)
+
+@router.get("/bestdescriptions")
+async def get_best_descriptions():
+    descriptions = []
+
+    # Retrieve appartment views document
+    doc = db.collection('Stats').document('appartmentsViewCount').get()
+
+    # Check if the document exists
+    if doc.exists:
+        appartment_views = doc.to_dict()
+
+        # Sort appartment views
+        sorted_appartments = sorted(appartment_views.items(), key=lambda x: x[1], reverse=True)
+
+        # Get top 3 apartments
+        top_3_appartments = sorted_appartments[:3]
+
+        # Retrieve descriptions for top 3 apartments
+        for appartment in top_3_appartments:
+            house = db.collection('Houses').document(appartment[0]).get()
+
+            # Check if the house document exists
+            if house.exists:
+                house_data = house.to_dict()
+
+                # Check if "description" key exists in house_data
+                if "description" in house_data:
+                    descriptions.append(house_data["description"])
+
+    return descriptions
