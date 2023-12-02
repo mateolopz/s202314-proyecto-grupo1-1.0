@@ -327,17 +327,16 @@ async def update_rating(house_id: str):
     return {"message": "Rating updated successfully", "raiting": raiting}
 
 
-@router.get("/houses/best")
+@router.get("/best/houses")
 async def get_best_houses():
     houses_collection = db.collection('Houses')
     stats_collection = db.collection('Stats').document('appartmentsViewCount').get().to_dict()
 
     # Obtener todos los documentos ordenados por rating en orden descendente
     docs = houses_collection.order_by('rating', direction=firestore.Query.DESCENDING).stream()
-
     lista = []
     count = 0
-
+    print(stats_collection)
     for doc in docs:
         house_data = doc.to_dict()
         house_id = doc.id
@@ -366,7 +365,7 @@ async def get_best_houses():
     return lista
 
 
-@router.get("/users/best")
+@router.get("/best/users")
 async def get_best_users():
     some_data = db.collection('Users')
     
