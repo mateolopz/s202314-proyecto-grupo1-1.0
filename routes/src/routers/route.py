@@ -249,10 +249,49 @@ async def get_houses_by_user(id: str):
     response_json = json.dumps(response_data)
     return response_json
 
-@router.get("/reviews/{house_id}")
-async def get_reviews_by_house(house_id: str):
+# @router.get("/reviews/{house_id}")
+# async def get_reviews_by_house(house_id: str):
 
-    doc = db.collection('Reviews').where(filter=FieldFilter('houseId', '==', house_id)).get()
+#     doc = db.collection('Reviews').where(filter=FieldFilter('houseId', '==', house_id)).get()
+#     lista = []
+#     for reg in doc:
+#         formattedData = reg.to_dict()
+#         formattedData['id'] = reg.id
+#         lista.append(formattedData)
+#     return lista
+
+# Paginación??
+@router.get("/reviews/{house_id}")
+async def get_reviews_by_house(house_id: str, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
+
+    # Ajustar la consulta para incluir paginación
+    doc = db.collection('Reviews').where('houseId', '==', house_id).limit(limit).offset(skip).stream()
+
+    lista = []
+    for reg in doc:
+        formattedData = reg.to_dict()
+        formattedData['id'] = reg.id
+        lista.append(formattedData)
+    return lista
+
+# @router.get("/reviews/user/{user_id}")
+# async def get_reviews_by_user(user_id: str):
+
+#     doc = db.collection('Reviews').where(filter=FieldFilter('userId', '==', user_id)).get()
+#     lista = []
+#     for reg in doc:
+#         formattedData = reg.to_dict()
+#         formattedData['id'] = reg.id
+#         lista.append(formattedData)
+#     return lista
+
+# Paginación??
+@router.get("/reviews/user/{user_id}")
+async def get_reviews_by_user(user_id: str, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
+
+    # Ajustar la consulta para incluir paginación
+    doc = db.collection('Reviews').where('userId', '==', user_id).limit(limit).offset(skip).stream()
+
     lista = []
     for reg in doc:
         formattedData = reg.to_dict()
