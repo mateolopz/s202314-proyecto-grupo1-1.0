@@ -123,8 +123,13 @@ async def get_nearest_offers():
         formattedData = doc.to_dict()
         print(formattedData['type'])
         diccionario[formattedData['type']]+=1
-    print(diccionario)
-    return diccionario
+    new=[]
+    for key, value in diccionario.items():
+        new.append({
+            "headerText": key,
+            "number": value
+        })
+    return new
 
 @router.get("/nearestoffers")
 async def get_nearest_offers(latitude: float, longitude: float, maxDistance: int):
