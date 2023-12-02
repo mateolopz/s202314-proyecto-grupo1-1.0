@@ -290,23 +290,42 @@ async def update_rating(house_id: str):
 
 @router.get("/houses/best")
 async def get_best_houses():
-    some_data = db.collection('Houses')
-    
-    docs = some_data.order_by('rating', direction=firestore.Query.DESCENDING).stream()
-    
+    houses_collection = db.collection('Houses')
+    stats_collection = db.collection('Stats').document('appartmentsViewCount').get().to_dict()
+
+    # Obtener todos los documentos ordenados por rating en orden descendente
+    docs = houses_collection.order_by('rating', direction=firestore.Query.DESCENDING).stream()
+
     lista = []
     count = 0
-    
+
     for doc in docs:
-        formattedData = doc.to_dict()
-        formattedData['id'] = doc.id  
-        lista.append(formattedData)
+        house_data = doc.to_dict()
+        house_id = doc.id
+
+        # Obtener el número de vistas desde la colección 'Stats'
+        views_count = stats_collection.get(house_id, 0)  # Si no hay vistas, establecer en 0
+
+        # Calcular la suma ponderada (70% rating, 30% número de vistas)
+        weighted_sum = 0.7 * house_data.get('rating', 0) + 0.3 * views_count
+
+        # Añadir el valor ponderado al diccionario de datos
+        house_data['weighted_sum'] = weighted_sum
+
+        # Añadir el id del documento al diccionario de datos
+        house_data['id'] = house_id
+
+        lista.append(house_data)
         count += 1
-        
+
         if count >= 5:
             break
-    
+
+    # Ordenar la lista por la suma ponderada en orden descendente
+    lista = sorted(lista, key=lambda x: x['weighted_sum'], reverse=True)
+
     return lista
+
 
 @router.get("/users/best")
 async def get_best_users():
