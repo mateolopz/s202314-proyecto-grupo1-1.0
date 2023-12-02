@@ -109,6 +109,23 @@ async def get_liking_houses_by_user(user_id: str):
         return []
 
 
+@router.get("/numberFeatures")
+async def get_nearest_offers():
+    data = db.collection('Features')
+    docs = data.stream()
+    diccionario={
+        "filtroUsuario":0, 
+        "filtroHabitaciones":0, 
+        "localizacionUsuario":0, 
+        "metricasApartamentos":0
+    }
+    for doc in docs:
+        formattedData = doc.to_dict()
+        print(formattedData['type'])
+        diccionario[formattedData['type']]+=1
+    print(diccionario)
+    return diccionario
+
 @router.get("/nearestoffers")
 async def get_nearest_offers(latitude: float, longitude: float, maxDistance: int):
     data = db.collection('Houses')
@@ -121,6 +138,11 @@ async def get_nearest_offers(latitude: float, longitude: float, maxDistance: int
     result = calculate_distance(latitude, longitude, lista, maxDistance)
     #response_json = json.dumps(result)
     return result
+
+@router.post("/features/post")
+async def new_feature_register(request_data: dict):
+    db.collection('Features').add(request_data)
+    return {"message": "Review added successfully"}
 
 @router.post("/houses/filtered")
 async def get_houses_by_filters(request_data: dict):
