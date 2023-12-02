@@ -346,7 +346,7 @@ async def update_rating(house_id: str):
 
     if (count == 0):
         return {"message": "No reviews for this house", "raiting": house['rating']}
-    raiting = sum/count
+    raiting = round(sum/count,1)
     house['rating'] = raiting
     db.collection('Houses').document(house_id).set(house)
     return {"message": "Rating updated successfully", "raiting": raiting}
