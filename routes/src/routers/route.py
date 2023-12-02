@@ -404,20 +404,33 @@ async def update_appartment_views(house_id: str):
         
     db.collection('Stats').document('appartmentsViewCount').set(appartment_views)
 
-@router.get("/houses/bestdescriptions")
+@router.get("/bestdescriptions")
 async def get_best_descriptions():
     descriptions = []
+
+    # Retrieve appartment views document
     doc = db.collection('Stats').document('appartmentsViewCount').get()
-    appartment_views = doc.to_dict()
 
-    sorted_appartments = sorted(appartment_views.items(), key=lambda x: x[1], reverse=True)
+    # Check if the document exists
+    if doc.exists:
+        appartment_views = doc.to_dict()
 
-    top_3_appartments = sorted_appartments[:3]
+        # Sort appartment views
+        sorted_appartments = sorted(appartment_views.items(), key=lambda x: x[1], reverse=True)
 
-    # Retrieve the descriptions of the top 3 appartment ids
-    for house_top in top_3_appartments:
-        house = db.collection('Houses').document(house_top[0]).get()
-        house_dict = house.to_dict()
-        descriptions.append(house_dict['description'])
+        # Get top 3 apartments
+        top_3_appartments = sorted_appartments[:3]
+
+        # Retrieve descriptions for top 3 apartments
+        for appartment in top_3_appartments:
+            house = db.collection('Houses').document(appartment[0]).get()
+
+            # Check if the house document exists
+            if house.exists:
+                house_data = house.to_dict()
+
+                # Check if "description" key exists in house_data
+                if "description" in house_data:
+                    descriptions.append(house_data["description"])
 
     return descriptions
