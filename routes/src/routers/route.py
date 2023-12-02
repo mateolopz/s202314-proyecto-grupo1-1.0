@@ -229,10 +229,10 @@ async def put_user_filters_stats(times_data: dict):
         
     db.collection('Stats').document('UsersFilters').set(user_filters_stats)
 
-@router.get("/houses/{email}")
-async def get_houses_by_user(email: str):
+@router.get("/houses/{id}")
+async def get_houses_by_user(id: str):
     houses = (db.collection('Houses')
-              .where(filter=FieldFilter('idUser', '==', email))
+              .where(filter=FieldFilter('idUser', '==', id))
                 .stream())    
     lista = []
     for doc in houses:
@@ -308,7 +308,6 @@ async def get_best_houses():
     
     return lista
 
-
 @router.get("/users/best")
 async def get_best_users():
     some_data = db.collection('Users')
@@ -328,3 +327,39 @@ async def get_best_users():
             break
     
     return lista
+
+@router.post("/houses")
+async def post_house(house: dict):
+    if 'id' in house:
+        del house['id']
+    db.collection('Houses').add(house)
+    return {"message": "House added successfully"}
+
+@router.put("/houses/{house_id}/views")
+async def update_appartment_views(house_id: str):
+    doc = db.collection('Stats').document('appartmentsViewCount').get()
+    appartment_views = doc.to_dict()
+    if house_id in appartment_views:
+        appartment_views[house_id] += 1
+    else:
+        appartment_views[house_id] = 1
+        
+    db.collection('Stats').document('appartmentsViewCount').set(appartment_views)
+
+@router.get("/houses/bestdescriptions")
+async def get_best_descriptions():
+    descriptions = []
+    doc = db.collection('Stats').document('appartmentsViewCount').get()
+    appartment_views = doc.to_dict()
+
+    sorted_appartments = sorted(appartment_views.items(), key=lambda x: x[1], reverse=True)
+
+    top_3_appartments = sorted_appartments[:3]
+
+    # Retrieve the descriptions of the top 3 appartment ids
+    for house_top in top_3_appartments:
+        house = db.collection('Houses').document(house_top[0]).get()
+        house_dict = house.to_dict()
+        descriptions.append(house_dict['description'])
+
+    return descriptions
