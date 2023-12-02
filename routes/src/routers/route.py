@@ -262,6 +262,28 @@ async def get_reviews_by_house(house_id: str, skip: int = Query(0, ge=0), limit:
         lista.append(formattedData)
     return lista
 
+@router.get("/total/reviews/{house_id}")
+async def get_reviews_by_house(house_id: str):
+
+    # Ajustar la consulta para incluir paginación
+    doc = db.collection('Reviews').where('houseId', '==', house_id).stream()
+    # Numero de reviews
+    count = 0
+    for reg in doc:
+        count += 1
+    return {"message": "Total Reviews", "count": count}
+
+@router.get("/total/reviews/user/{user_id}")
+async def get_reviews_by_house(user_id: str):
+
+    # Ajustar la consulta para incluir paginación
+    doc = db.collection('Reviews').where('userId', '==', user_id).stream()
+    # Numero de reviews
+    count = 0
+    for reg in doc:
+        count += 1
+    return {"message": "Total Reviews", "count": count}
+
 @router.get("/reviews/user/{user_id}")
 async def get_reviews_by_user(user_id: str, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
 
