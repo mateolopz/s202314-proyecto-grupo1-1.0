@@ -150,7 +150,7 @@ async def new_feature_register(request_data: dict):
     return {"message": "Review added successfully"}
 
 @router.post("/houses/filtered")
-async def get_houses_by_filters(request_data: dict):
+async def get_houses_by_filters(request_data: dict, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
     query = db.collection('Houses').get()
 
     filtered_houses = []
@@ -174,6 +174,8 @@ async def get_houses_by_filters(request_data: dict):
                         match_times+=1
         if(match_times>=atributes*0.5):
             filtered_houses.append(house)
+
+    filtered_houses = filtered_houses[skip:skip+limit]
 
     return filtered_houses
 
