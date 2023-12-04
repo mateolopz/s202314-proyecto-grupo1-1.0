@@ -202,7 +202,7 @@ async def get_documents_within_radius(request_data:dict):
     return users
 
 @router.post("/users/filtered")
-async def get_users_by_filters(request_data: dict):
+async def get_users_by_filters(request_data: dict, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
     usuarios=[]
     query = db.collection('Users')
     pet_preference = request_data["likes_pet"]
@@ -235,7 +235,7 @@ async def get_users_by_filters(request_data: dict):
     if neighborhood is not None:
         query = query.where("locality", "==", neighborhood)
 
-    query_snapshot = query.get()
+    query_snapshot = query.limit(limit).offset(skip).get()
 
     for doc in query_snapshot:
         formattedData = doc.to_dict()
