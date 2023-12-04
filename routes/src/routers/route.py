@@ -22,8 +22,8 @@ def ping():
     return "pong"
 
 @router.get("/houses")
-async def get_houses():
-    some_data = db.collection('Houses')
+async def get_houses(skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
+    some_data = db.collection('Houses').limit(limit).offset(skip)
     docs = some_data.stream()
     lista = []
     for doc in docs:
@@ -34,8 +34,8 @@ async def get_houses():
 
 
 @router.get("/users")
-async def get_houses():
-    some_data = db.collection('Users')
+async def get_users(skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
+    some_data = db.collection('Users').limit(limit).offset(skip)
     docs = some_data.stream()
     lista = []
     for doc in docs:
