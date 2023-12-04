@@ -353,17 +353,6 @@ async def get_count_house():
         count += 1
     return {"message": "Total Houses", "count": count}
 
-@router.get("/total/houses/filters")
-async def get_count_house():
-
-    # Ajustar la consulta para incluir paginación
-    doc = db.collection('Houses').stream()
-    # Numero de reviews
-    count = 0
-    for reg in doc:
-        count += 1
-    return {"message": "Total Houses", "count": count}
-
 @router.get("/reviews/user/{user_id}")
 async def get_reviews_by_user(user_id: str, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
 
