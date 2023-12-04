@@ -340,7 +340,48 @@ async def get_count_users(request_data: dict):
         if(match_times>=atributes*0.5):
             filtered_houses.append(house)
 
-    return {"message": "Total Users", "count": len(filtered_houses)}
+    return {"message": "Total Houses", "count": len(filtered_houses)}
+
+@router.post("/total/users")
+async def get_users_by_filters(request_data: dict):
+    usuarios=[]
+    query = db.collection('Users')
+    pet_preference = request_data["likes_pet"]
+    introverted_preference = request_data["personality"]
+    cleaning_frequency = request_data["clean"]
+    vape_preference = request_data["vape"]
+    smoke_preference = request_data["smoke"]
+    work_from_home_preference = request_data["work_home"]
+    sleep_time = request_data["sleep_time"]
+    external_people_frequency = request_data["bring_people"]
+    city = request_data["city"]
+    neighborhood = request_data["neighborhood"]
+    
+    if external_people_frequency is not None:
+        query = query.where("bring_people", "==", external_people_frequency)
+    if sleep_time is not None:
+        query = query.where("sleep", "==", sleep_time)
+    if smoke_preference is not None:
+        query = query.where("smoke", "==", smoke_preference)
+    if vape_preference is not None:
+        query = query.where("vape", "==", vape_preference)
+    if cleaning_frequency is not None:
+        query = query.where("clean", "==", cleaning_frequency)
+    if introverted_preference is not None:
+        query = query.where("personality", "==", introverted_preference)
+    if pet_preference is not None:
+        query = query.where("likes_pets", "==", pet_preference)
+    if city is not None:
+        query = query.where("city", "==", city)
+    if neighborhood is not None:
+        query = query.where("locality", "==", neighborhood)
+
+    query_snapshot = query.get()
+
+    count = 0
+    for doc in query_snapshot:
+        count += 1
+    return {"message": "Total Users", "count": count}
 
 @router.get("/total/houses")
 async def get_count_house():
