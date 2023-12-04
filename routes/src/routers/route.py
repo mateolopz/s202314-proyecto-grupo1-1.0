@@ -314,18 +314,46 @@ async def get_reviews_by_house(user_id: str):
         count += 1
     return {"message": "Total Reviews", "count": count}
 
-@router.get("/total/users")
-async def get_count_users():
+@router.post("/total/houses/filters")
+async def get_count_users(request_data: dict):
+    query = db.collection('Houses').get()
+
+    filtered_houses = []
+
+    for doc in query:
+        house = doc.to_dict()
+        house['id'] = doc.id  
+        
+        match_times = 0
+        atributes = 0
+        for field, value in request_data.items():
+            if(value != "" and value != 0):
+                atributes+=1
+                if(type(value)=='int' or type(value)=='float' or field=='rentPrice'):
+                    lower_bound = float(value) * 0.9
+                    upper_bound = float(value) * 1.1
+                    if(float(house[field])>=lower_bound and float(house[field])<=upper_bound):
+                        match_times+=1
+                else:
+                    if(value == house[field]):
+                        match_times+=1
+        if(match_times>=atributes*0.5):
+            filtered_houses.append(house)
+
+    return {"message": "Total Users", "count": len(filtered_houses)}
+
+@router.get("/total/houses")
+async def get_count_house():
 
     # Ajustar la consulta para incluir paginación
-    doc = db.collection('Users').stream()
+    doc = db.collection('Houses').stream()
     # Numero de reviews
     count = 0
     for reg in doc:
         count += 1
-    return {"message": "Total Users", "count": count}
+    return {"message": "Total Houses", "count": count}
 
-@router.get("/total/houses")
+@router.get("/total/houses/filters")
 async def get_count_house():
 
     # Ajustar la consulta para incluir paginación
