@@ -63,6 +63,7 @@ async def get_houses():
         formattedData = doc.to_dict()
         formattedData['id'] = doc.id  
         lista.append(formattedData)
+    lista = lista[0:3]
     return lista
 
 @router.get("/stats/usersfilters")
