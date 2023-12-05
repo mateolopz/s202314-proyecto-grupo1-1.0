@@ -181,8 +181,9 @@ async def get_houses_by_filters(request_data: dict, skip: int = Query(0, ge=0), 
     return filtered_houses
 
 @router.post("/users/ubication")
-async def get_documents_within_radius(request_data:dict):
-
+async def get_documents_within_radius(request_data:dict, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
+    skip=0
+    limit=2
     users = []
     radius_in_degrees = 20
     longitude=request_data["longitude"]
@@ -196,13 +197,21 @@ async def get_documents_within_radius(request_data:dict):
 
     query = users_collection.where('latitude', '>=', min_lat).where('latitude', '<=', max_lat).get()
 
+    result_count = len(query)
+    
+    if result_count == 0 or skip >= result_count:
+        return JSONResponse(content=[], status_code=200)
     for doc in query:
         formattedData = doc.to_dict()
         if min_lon <= formattedData["longitude"] <= max_lon:
             formattedData['id'] = doc.id
             users.append(formattedData)
+
+    if skip >= len(users):
+        return []
+    
+    return users[skip:skip+limit]
             
-    return users
 
 @router.post("/users/filtered")
 async def get_users_by_filters(request_data: dict, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
