@@ -180,10 +180,10 @@ async def get_houses_by_filters(request_data: dict, skip: int = Query(0, ge=0), 
 
     return filtered_houses
 
+
+
 @router.post("/users/ubication")
 async def get_documents_within_radius(request_data:dict, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
-    skip=0
-    limit=2
     users = []
     radius_in_degrees = 20
     longitude=request_data["longitude"]
@@ -211,6 +211,29 @@ async def get_documents_within_radius(request_data:dict, skip: int = Query(0, ge
         return []
     
     return users[skip:skip+limit]
+
+@router.post("/users/ubication/total")
+async def get_documents_within_radius_total(request_data:dict, skip: int = Query(0, ge=0), limit: int = Query(5, le=50)):
+    users = []
+    radius_in_degrees = 20
+    longitude=request_data["longitude"]
+    latitude=request_data["latitude"]
+    min_lat = latitude - radius_in_degrees
+    max_lat = latitude + radius_in_degrees
+    min_lon = longitude - radius_in_degrees
+    max_lon = longitude + radius_in_degrees
+
+    users_collection = firestore.client().collection('Users')
+
+    query = users_collection.where('latitude', '>=', min_lat).where('latitude', '<=', max_lat).get()
+
+    for doc in query:
+        formattedData = doc.to_dict()
+        if min_lon <= formattedData["longitude"] <= max_lon:
+            formattedData['id'] = doc.id
+            users.append(formattedData)
+    
+    return {"message": "Total Users", "count": len(users)}
             
 
 @router.post("/users/filtered")
